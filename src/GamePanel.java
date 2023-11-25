@@ -5,7 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -22,12 +25,28 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 	Timer frameDraw;
 
+	Rocketship rocketship = new Rocketship(250,700,50,50);
+
+	ObjectManager objectManager = new ObjectManager(rocketship);
+
+	public static BufferedImage image;
+	public static boolean needImage = true;
+	public static boolean gotImage = false;
+
+	Timer alienSpawn;
+
+
 	public GamePanel() {
 		titleFont = new Font ("Arial", Font.PLAIN, 48);
 		subTextFont = new Font ("Arial", Font.PLAIN, 20);
 
 		frameDraw = new Timer(1000/60, this);
 		frameDraw.start();
+
+		if (needImage) {
+			loadImage ("space.png");
+		}
+
 	}
 
 	@Override
@@ -48,6 +67,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 	}
 	void updateGameState() {
+		objectManager.update();
+		if(rocketship.isActive == false) {
+			currentState = END;
+		}
 
 	}
 	void updateEndState() {
@@ -69,8 +92,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 	}
 	void drawGameState(Graphics g) {
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, LeagueInvaders.WIDTH, LeagueInvaders.HEIGHT);
+
+		if (gotImage) {
+			g.drawImage(image, 0, 0, null);
+		} else {
+			g.setColor(Color.BLACK);
+			g.fillRect(0, 0, LeagueInvaders.WIDTH, LeagueInvaders.HEIGHT);
+		}
+
+		objectManager.draw(g);
+
 	}
 	void drawEndState(Graphics g) {
 		g.setColor(Color.RED);	
@@ -81,7 +112,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 		g.drawString("Game Over", 125, 150);
 
 		g.setFont(subTextFont);
-		g.drawString("You killed 0 enemies", 155, 350);
+		if(objectManager.getScore() == 1) {
+			g.drawString("You killed " + objectManager.getScore() +  " enemy", 155, 350);
+		}
+		else {
+			g.drawString("You killed " + objectManager.getScore() +  " enemies", 155, 350);
+		}
 		g.drawString("Press ENTER to restart", 140, 500);
 
 	}
@@ -109,24 +145,42 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 		if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
 			if (currentState == END) {
 				currentState = MENU;
+				rocketship = new Rocketship(250,700,50,50);
+				objectManager = new ObjectManager(rocketship);
 			}
-			else {
-				currentState++;
+			else if (currentState == MENU){
+				currentState = GAME;
+				startGame();
+			}
+			else if (currentState == GAME) {
+				currentState = END;
+				alienSpawn.stop();
 			}
 		}   
 
+		if(currentState == MENU) {
+			if (arg0.getKeyCode() == KeyEvent.VK_SPACE) {
+				JOptionPane.showMessageDialog (null, "Use arrow keys to move. Press SPACE to fire. Try not to die");
+			}
+		}
+
 		if(currentState == GAME) {
-			if (arg0.getKeyCode()==KeyEvent.VK_UP) {
-				System.out.println("UP");
+			if (arg0.getKeyCode()==KeyEvent.VK_UP && rocketship.y > 0) {
+				rocketship.up();
 			}
-			if (arg0.getKeyCode()==KeyEvent.VK_DOWN) {
-				System.out.println("DOWN");
+			if (arg0.getKeyCode()==KeyEvent.VK_DOWN && rocketship.y < LeagueInvaders.HEIGHT - rocketship.height) {
+				rocketship.down();
 			}
-			if (arg0.getKeyCode()==KeyEvent.VK_LEFT) {
-				System.out.println("LEFT");
+			if (arg0.getKeyCode()==KeyEvent.VK_LEFT && rocketship.x > 0) {
+				rocketship.left();
 			}
-			if (arg0.getKeyCode()==KeyEvent.VK_RIGHT) {
-				System.out.println("RIGHT");
+			if (arg0.getKeyCode()==KeyEvent.VK_RIGHT && rocketship.x < LeagueInvaders.WIDTH - rocketship.width) {
+				rocketship.right();
+			}
+
+
+			if (arg0.getKeyCode()==KeyEvent.VK_SPACE) {
+				objectManager.addProjectile(rocketship.getProjectile());
 			}
 
 		}
@@ -142,6 +196,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 	public void keyTyped(KeyEvent arg0) {
 		// TODO Auto-generated method stub
 
+	}
+
+	void loadImage(String imageFile) {
+		if (needImage) {
+			try {
+				image = ImageIO.read(this.getClass().getResourceAsStream(imageFile));
+				gotImage = true;
+			} catch (Exception e) {
+
+			}
+			needImage = false;
+		}
+	}
+
+	public void startGame() {
+		alienSpawn = new Timer(1000, objectManager);
+		alienSpawn.start();
 	}
 
 }
