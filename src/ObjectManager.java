@@ -4,14 +4,18 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.swing.Timer;
+
 public class ObjectManager implements ActionListener {
 	Rocketship rocketship;
 	ArrayList<Projectile> projectiles = new ArrayList<>();
 	ArrayList<Alien> aliens = new ArrayList<>();
 	Random random = new Random();
-	
+
 	int score = 0;
 
+	Timer alienSpawn;
+	Timer shootingTimer;
 
 	public ObjectManager(Rocketship rocketship) {
 		this.rocketship = rocketship;
@@ -49,6 +53,7 @@ public class ObjectManager implements ActionListener {
 			purgeObjects();
 		}
 
+		rocketship.updatePosition();
 	}
 
 	public void draw (Graphics g) {
@@ -87,7 +92,13 @@ public class ObjectManager implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
-		addAlien();
+		if(arg0.getSource() == alienSpawn) {
+			addAlien();
+		}
+
+		if(arg0.getSource() == shootingTimer) {
+			rocketship.updateShooting();
+		}
 	}
 
 	public void checkCollision() {
@@ -97,7 +108,7 @@ public class ObjectManager implements ActionListener {
 				aliens.get(i).isActive = false;
 				rocketship.isActive = false;
 			}
-			
+
 			for(int j = 0; j<projectiles.size(); j++) {
 				if(projectiles.get(j).collisionBox.intersects(aliens.get(i).collisionBox)) {
 					aliens.get(i).isActive = false;
@@ -109,9 +120,19 @@ public class ObjectManager implements ActionListener {
 
 		}
 	}
-	
+
 	public int getScore() {
 		return score;
 	}
+
+	public void setAlienTimer(Timer alienSpawn) {
+		this.alienSpawn = alienSpawn;
+	}
+
+	public void setShootingTimer(Timer shootingTimer) {
+		this.shootingTimer = shootingTimer;
+	}
+
+
 
 }

@@ -10,9 +10,17 @@ public class Rocketship extends GameObject {
 	public static boolean needImage = true;
 	public static boolean gotImage = false;	
 
+	public boolean movingUp = false;
+	public boolean movingDown = false;
+	public boolean movingLeft = false;
+	public boolean movingRight = false;
+	public boolean isShooting = false;
+	
+	ObjectManager objectManager;
+
 	public Rocketship(int x, int y, int width, int height) {
 		super(x, y, width, height);
-		speed = 20;
+		speed = 10;
 
 		if (needImage) {
 			loadImage ("rocket.png");
@@ -62,4 +70,30 @@ public class Rocketship extends GameObject {
 		return new Projectile(x+width/2, y, 10, 10);
 	}
 
+	public void updatePosition() {
+		if(movingUp && y > 0) {
+			up();
+		}
+		if(movingDown && y < LeagueInvaders.HEIGHT - height) {
+			down();
+		}
+		if(movingLeft && x > 0) {
+			left();
+		}
+		if(movingRight && x < LeagueInvaders.WIDTH - width) {
+			right();
+		}
+
+	}
+
+	public void updateShooting() {
+		if(isShooting && objectManager != null) {
+			objectManager.addProjectile(getProjectile());
+		}
+	}
+	
+	public void setObjectManager(ObjectManager obj) {
+		this.objectManager = obj;
+	}
+	
 }

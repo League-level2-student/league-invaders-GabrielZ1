@@ -35,6 +35,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 	Timer alienSpawn;
 
+	Timer shootingTimer;
 
 	public GamePanel() {
 		titleFont = new Font ("Arial", Font.PLAIN, 48);
@@ -46,7 +47,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 		if (needImage) {
 			loadImage ("space.png");
 		}
-
+		rocketship.setObjectManager(objectManager);
 	}
 
 	@Override
@@ -147,6 +148,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 				currentState = MENU;
 				rocketship = new Rocketship(250,700,50,50);
 				objectManager = new ObjectManager(rocketship);
+				rocketship.setObjectManager(objectManager);
 			}
 			else if (currentState == MENU){
 				currentState = GAME;
@@ -166,21 +168,20 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 		if(currentState == GAME) {
 			if (arg0.getKeyCode()==KeyEvent.VK_UP && rocketship.y > 0) {
-				rocketship.up();
+				rocketship.movingUp = true;
 			}
 			if (arg0.getKeyCode()==KeyEvent.VK_DOWN && rocketship.y < LeagueInvaders.HEIGHT - rocketship.height) {
-				rocketship.down();
+				rocketship.movingDown = true;
 			}
 			if (arg0.getKeyCode()==KeyEvent.VK_LEFT && rocketship.x > 0) {
-				rocketship.left();
+				rocketship.movingLeft = true;
 			}
 			if (arg0.getKeyCode()==KeyEvent.VK_RIGHT && rocketship.x < LeagueInvaders.WIDTH - rocketship.width) {
-				rocketship.right();
+				rocketship.movingRight = true;
 			}
 
-
 			if (arg0.getKeyCode()==KeyEvent.VK_SPACE) {
-				objectManager.addProjectile(rocketship.getProjectile());
+				rocketship.isShooting = true;
 			}
 
 		}
@@ -189,7 +190,25 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 	@Override
 	public void keyReleased(KeyEvent arg0) {
 		// TODO Auto-generated method stub
+		if(currentState == GAME) {
+			if (arg0.getKeyCode()==KeyEvent.VK_UP) {
+				rocketship.movingUp = false;
+			}
+			if (arg0.getKeyCode()==KeyEvent.VK_DOWN) {
+				rocketship.movingDown = false;
+			}
+			if (arg0.getKeyCode()==KeyEvent.VK_LEFT) {
+				rocketship.movingLeft = false;
+			}
+			if (arg0.getKeyCode()==KeyEvent.VK_RIGHT) {
+				rocketship.movingRight = false;
+			}
 
+			if (arg0.getKeyCode()==KeyEvent.VK_SPACE) {
+				rocketship.isShooting = false;
+			}
+
+		}
 	}
 
 	@Override
@@ -212,7 +231,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
 	public void startGame() {
 		alienSpawn = new Timer(1000, objectManager);
+		objectManager.setAlienTimer(alienSpawn);
 		alienSpawn.start();
+		
+		shootingTimer = new Timer(250, objectManager);
+		objectManager.setShootingTimer(shootingTimer);
+		shootingTimer.start();
+		
 	}
 
 }
